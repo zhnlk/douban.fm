@@ -1,12 +1,7 @@
-##douban.fm [![Code Issues](https://www.quantifiedcode.com/api/v1/project/459f324d372447d992c04df79c1f5615/badge.svg)](https://www.quantifiedcode.com/app/project/459f324d372447d992c04df79c1f5615)
-
-更新API, 暂时只设定了3个频道, 登录时需要输入下验证码
+##douban.fm [![Code Issues](https://www.quantifiedcode.com/api/v1/project/459f324d372447d992c04df79c1f5615/badge.svg)](https://www.quantifiedcode.com/app/project/459f324d372447d992c04df79c1f5615) [![PyPI version](https://img.shields.io/pypi/v/douban.fm.svg)](https://pypi.python.org/pypi/douban.fm/) [![licence](https://img.shields.io/pypi/l/douban.fm.svg)](https://pypi.python.org/pypi/douban.fm/)
 
 Terminal-based douban.fm inspired by [douban.fm](https://github.com/turingou/douban.fm).
 
-### Developer Wiki
-
-https://github.com/taizilongxu/douban.fm/wiki
 
 ### Authors
 
@@ -15,6 +10,7 @@ https://github.com/taizilongxu/douban.fm/wiki
 * [skyline75489](https://github.com/skyline75489)
 * [Hexcles](https://github.com/Hexcles)
 * [killpanda](https://github.com/killpanda)
+* [jonas8](https://github.com/jonas8)
 
 ### Screenshots
 
@@ -26,7 +22,7 @@ Linux / OS X
 
 ### Installation
 
-    $ sudo pip install douban.fm
+    $ sudo pip2 install douban.fm
 
 需要mplayer播放器依赖,如未安装:
 
@@ -40,7 +36,7 @@ OS X:
 
 ### Update
 
-    $ sudo pip install --upgrade douban.fm
+    $ sudo pip2 install --upgrade douban.fm
 
 ### Usage
 
@@ -124,6 +120,14 @@ HELP = h     # 查看帮助
 
 ###Log
 
+v0.4.14 修改api接口
+
+V0.4.12 去掉pillow包, 增加exception
+
+V0.4.11 增加固定频道
+
+V0.4.10 更改为豆瓣Web端API
+
 V0.4.7 修复版本检测功能BUG
 
 V0.4.6 版本检测功能
@@ -156,6 +160,14 @@ V0.2.9 支持歌词,支持Mac OS X
 
 V0.2.8 增加config
 
+### Developer Wiki
+
+https://github.com/taizilongxu/douban.fm/wiki
+
 ### License (MIT)
 
 Copyright (c) 2014-2015 hackerxu
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/taizilongxu/douban.fm/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+

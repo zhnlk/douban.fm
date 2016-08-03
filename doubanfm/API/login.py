@@ -1,13 +1,13 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+from pycookiecheat import chrome_cookies
 from termcolor import colored
-from StringIO import StringIO
-from PIL import Image
 import requests
 import getpass
 import json
 
 from doubanfm.API.json_utils import decode_dict
+from doubanfm.exceptions import APIError
 
 EMAIL_INFO = colored('➔', 'red') + colored(' Email: ', 'green')
 PASS_INFO = colored('➔', 'red') + colored(' Password: ', 'green')
@@ -16,15 +16,21 @@ ERROR = colored('(╯‵□′)╯︵┻━┻: ', 'red')
 
 HEADERS = {"User-Agent": "Paw/2.2.5 (Macintosh; OS X/10.11.1) GCDHTTPRequest"}
 
+
 def win_login():
     """登陆界面"""
     email = raw_input(EMAIL_INFO)
     password = getpass.getpass(PASS_INFO)
     captcha_id = get_captcha_id()
     get_capthca_pic(captcha_id)
-    import webbrowser
-    url = "file:///tmp/captcha_pic.jpg"
-    webbrowser.open(url)
+    file = '/tmp/captcha_pic.jpg'
+    try:
+        from subprocess import call
+        from os.path import expanduser
+        call([expanduser('~') + '/.iterm2/imgcat', file])
+    except:
+        import webbrowser
+        webbrowser.open('file://' + file)
     captcha_solution = raw_input(CAPTCHA_INFO)
     return email, password, captcha_solution, captcha_id
 
@@ -63,7 +69,7 @@ def request_token():
             'captcha_id': captcha_id,
             'task': 'sync_channel_list'
         }
-        r = requests.post('http://douban.fm/j/login', data=options, headers=HEADERS)
+        r = requests.post('https://douban.fm/j/login', data=options, headers=HEADERS)
         req_json = json.loads(r.text, object_hook=decode_dict)
         if req_json['r'] == 0:
             post_data = {
@@ -87,8 +93,12 @@ def request_token():
 
 
 def get_captcha_id():
-    r = requests.get('http://douban.fm/j/new_captcha', headers=HEADERS)
-    return r.text.strip('"')
+    try:
+        r = requests.get('https://douban.fm/j/new_captcha', headers=HEADERS)
+        r.raise_for_status()
+        return r.text.strip('"')
+    except Exception as e:
+        raise APIError('get captcha id error: ' + str(e))
 
 
 def get_capthca_pic(captcha_id=None):
@@ -96,11 +106,14 @@ def get_capthca_pic(captcha_id=None):
         'size': 'm',
         'id': captcha_id
     }
-    r = requests.get('http://douban.fm/misc/captcha',
+    r = requests.get('https://douban.fm/misc/captcha',
                      params=options,
                      headers=HEADERS)
     if r.status_code == 200:
-        i = Image.open(StringIO(r.content))
-        i.save('/tmp/captcha_pic.jpg')
+        path = '/tmp/captcha_pic.jpg'
+        print 'Download captcha in ' + path
+        with open(path, 'wb') as f:
+            for chunk in r.iter_content(1024):
+                f.write(chunk)
     else:
-        print "get_captcha_pic " + r.status_code
+        print "get captcha pic error with http code:" + str(r.status_code)

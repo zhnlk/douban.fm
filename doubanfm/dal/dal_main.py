@@ -97,7 +97,7 @@ class MainDal(object):
 
     @property
     def love(self):
-        if self.song_like == 1:
+        if self.song_like:
             return color_func(self.c['PLAYINGSONG']['like'])(LOVE)
         else:
             return ''
@@ -117,7 +117,7 @@ class MainDal(object):
                           (self.song_title)
         albumtitle = color_func(self.c['PLAYINGSONG']['albumtitle']) \
                                (self.song_albumtitle)
-        artist = color_func(self.c['PLAYINGSONG']['artist']) \
+        artist = color_func(self.c['PLAYINGSONG']['artist'])\
                            (self.song_artist)
         # public_time = color_func(self.c['PLAYINGSONG']['publictime']) \
         #                         (self.song_public_time) or ''
