@@ -156,7 +156,7 @@ class Doubanfm(object):
                 s = requests.get(url, params=options, cookies=self._cookies, headers=HEADERS)
                 req_json = s.json()
                 if req_json['r'] == 0:
-                    if 'song' not in req_json:
+                    if 'song' not in req_json or not req_json['song']:
                         break
                     return req_json['song'][0]
             except Exception, err:
@@ -222,21 +222,25 @@ class Doubanfm(object):
         {'msg': 'You API access rate limit has been exceeded.
                  Contact api-master@douban.com if you want higher limit. ',
          'code': 1998,
-         'request': 'POST /v2/fm/lyric'}
+         'request': 'GET /j/v2/lyric'}
         """
         try:
-            url = "https://api.douban.com/v2/fm/lyric"
+            url = "https://douban.fm/j/v2/lyric"
             postdata = {
                 'sid': playingsong['sid'],
                 'ssid': playingsong['ssid'],
             }
             s = requests.session()
-            response = s.post(url, data=postdata, headers=HEADERS)
+            response = s.get(url, params=postdata, headers=HEADERS)
 
             # 把歌词解析成字典
             lyric = json.loads(response.text, object_hook=decode_dict)
+            logger.info(lyric)
             if lyric.get('code', None) == 1998:
                 logger.info('lrc API access rate limit has been exceeded')
+                return {}
+            elif lyric.get('code', None) == 107:
+                logger.info('lrc API invalid_request_uri')
                 return {}
             lrc_dic = lrc2dict(lyric['lyric'])
 
