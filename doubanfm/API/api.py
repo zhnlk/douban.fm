@@ -5,12 +5,14 @@
 """
 import requests
 import logging
+import time
 import json
+from six import iteritems
 
 from doubanfm.config import db_config
 from doubanfm.lrc2dic import lrc2dict
 from doubanfm.API.json_utils import decode_dict
-from doubanfm.exceptions import APIError
+from doubanfm.exceptions import APIError, GenericError
 
 
 logger = logging.getLogger('doubanfm')  # get logger
@@ -45,7 +47,7 @@ class Doubanfm(object):
         获取channel列表
         """
         self._channel_list = [
-            {'name': '红心兆赫', 'channel_id': -3},
+            # {'name': '红心兆赫', 'channel_id': -3},
             {'name': '我的私人兆赫', 'channel_id': 0},
             {'name': '每日私人歌单', 'channel_id': -2},
             {'name': '豆瓣精选兆赫', 'channel_id': -10},
@@ -57,6 +59,7 @@ class Doubanfm(object):
             {'name': '舒缓', 'channel_id': 155},
             {'name': 'Easy', 'channel_id': 77},
             {'name': '咖啡', 'channel_id': 32},
+            {'name': '运动', 'channel_id': 257},
             # 语言 / 年代
             {'name': '华语', 'channel_id': 1},
             {'name': '欧美', 'channel_id': 2},
@@ -151,17 +154,19 @@ class Doubanfm(object):
         if 'sid' in data:
             options['sid'] = data['sid']
         url = 'https://douban.fm/j/v2/playlist'
-        while 1:
+        while True:
             try:
-                s = requests.get(url, params=options, cookies=self._cookies, headers=HEADERS)
+                s = requests.get(url, params=options,
+                                 cookies=self._cookies, headers=HEADERS)
                 req_json = s.json()
                 if req_json['r'] == 0:
-                    if 'song' not in req_json:
+                    if 'song' not in req_json or not req_json['song']:
                         break
                     return req_json['song'][0]
-            except Exception, err:
+            except Exception as err:
                 raise APIError(err)
                 break
+        return None
 
     def get_first_song(self):
         """
@@ -169,7 +174,14 @@ class Doubanfm(object):
 
         :params return: json
         """
-        return self.requests_url('n')
+        count = 3
+        while count > 0:
+            song = self.requests_url('n')
+            if song:
+                return song
+            count -= 1
+            time.sleep(2)
+        raise GenericError('获取第一首歌曲失败，无法完成初始化')
 
     def get_song(self, sid):
         """
@@ -222,27 +234,32 @@ class Doubanfm(object):
         {'msg': 'You API access rate limit has been exceeded.
                  Contact api-master@douban.com if you want higher limit. ',
          'code': 1998,
-         'request': 'POST /v2/fm/lyric'}
+         'request': 'GET /j/v2/lyric'}
         """
         try:
-            url = "https://api.douban.com/v2/fm/lyric"
+            url = "https://douban.fm/j/v2/lyric"
             postdata = {
                 'sid': playingsong['sid'],
                 'ssid': playingsong['ssid'],
             }
             s = requests.session()
-            response = s.post(url, data=postdata, headers=HEADERS)
+            response = s.get(url, params=postdata, headers=HEADERS)
 
             # 把歌词解析成字典
             lyric = json.loads(response.text, object_hook=decode_dict)
+            logger.info(lyric)
             if lyric.get('code', None) == 1998:
                 logger.info('lrc API access rate limit has been exceeded')
+                return {}
+            elif lyric.get('code', None) == 107:
+                logger.info('lrc API invalid_request_uri')
                 return {}
             lrc_dic = lrc2dict(lyric['lyric'])
 
             # 原歌词用的unicode,为了兼容
-            for key, value in lrc_dic.iteritems():
-                lrc_dic[key] = value.decode('utf-8')
+            for key, value in iteritems(lrc_dic):
+                # lrc_dic[key] = value.decode('utf-8')
+                lrc_dic[key] = value
             if lrc_dic:
                 logger.debug('Get lyric success!')
             return lrc_dic

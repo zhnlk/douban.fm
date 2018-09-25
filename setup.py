@@ -5,7 +5,7 @@ import sys, os
 打包的用的setup必须引入，
 """
 
-VERSION = '0.4.15'
+VERSION = '0.4.16'
 
 setup(name='douban.fm',
       version=VERSION,
@@ -24,7 +24,7 @@ setup(name='douban.fm',
         'termcolor',
         'requests',
         'pycookiecheat'
-      ] + (['pyobjc-core', 'pyobjc'] if 'darwin' in sys.platform else []),
+      ],
       entry_points={
         'console_scripts':[
             'douban.fm = doubanfm.douban:main'
